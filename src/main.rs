@@ -21,7 +21,17 @@ use camera::Camera;
 use light::Light;
 use material::Material;
 
-const SHADOW_BIAS: f32 = 1e-4;
+const ORIGIN_BIAS: f32 = 1e-4;
+const SKYBOX_COLOR: Color = Color::new(68, 142, 228);
+
+fn offset_origin(intersect: &Intersect, direction: &Vec3) -> Vec3 {
+    let offset = intersect.normal * ORIGIN_BIAS;
+    if direction.dot(&intersect.normal) < 0.0 {
+        intersect.point - offset
+    } else {
+        intersect.point + offset
+    }
+}
 
 fn reflect(incident: &Vec3, normal: &Vec3) -> Vec3 {
     incident - 2.0 * incident.dot(normal) * normal
@@ -35,13 +45,7 @@ fn cast_shadow(
     let light_dir = (light.position - intersect.point).normalize();
     let light_distance = (light.position - intersect.point).magnitude();
 
-    let offset_normal = intersect.normal * SHADOW_BIAS;
-    let shadow_ray_origin = if light_dir.dot(&intersect.normal) < 0.0 {
-        intersect.point - offset_normal
-    } else {
-        intersect.point + offset_normal
-    };
-
+    let shadow_ray_origin = offset_origin(intersect, &light_dir);
     let mut shadow_intensity = 0.0;
 
     for object in objects {
@@ -61,7 +65,13 @@ pub fn cast_ray(
     ray_direction: &Vec3,
     objects: &[Sphere],
     light: &Light,
+    depth: u32, // this value should initially be 0
+                // and should be increased by 1 in each recursion
 ) -> Color {
+    if depth > 3 {  // default recursion depth
+        return SKYBOX_COLOR; // Max recursion depth reached
+    }
+
     let mut intersect = Intersect::empty();
     let mut zbuffer = f32::INFINITY;
 
@@ -75,12 +85,12 @@ pub fn cast_ray(
 
     if !intersect.is_intersecting {
         // return default sky box color
-        return Color::new(4, 12, 36);
+        return SKYBOX_COLOR;
     }
 
     let light_dir = (light.position - intersect.point).normalize();
     let view_dir = (ray_origin - intersect.point).normalize();
-    let reflect_dir = reflect(&-light_dir, &intersect.normal);
+    let reflect_dir = reflect(&-light_dir, &intersect.normal).normalize();
 
     let shadow_intensity = cast_shadow(&intersect, light, objects);
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
@@ -91,7 +101,15 @@ pub fn cast_ray(
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
 
-    diffuse + specular
+    let mut reflect_color = Color::black();
+    let reflectivity = intersect.material.albedo[2];
+    if reflectivity > 0.0 {
+        let reflect_dir = reflect(&ray_direction, &intersect.normal).normalize();
+        let reflect_origin = offset_origin(&intersect, &reflect_dir);
+        reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1);
+    }
+
+    (diffuse + specular) * (1.0 - reflectivity) + (reflect_color * reflectivity)
 }
 
 pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere], camera: &Camera, light: &Light) {
@@ -126,7 +144,7 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere], camera: &Camera
             let rotated_direction = camera.basis_change(&ray_direction);
 
             // Cast the ray and get the pixel color
-            let pixel_color = cast_ray(&camera.eye, &rotated_direction, objects, light);
+            let pixel_color = cast_ray(&camera.eye, &rotated_direction, objects, light, 0);
 
             // Draw the pixel on screen with the returned color
             framebuffer.set_current_color(pixel_color.to_hex());
@@ -145,7 +163,7 @@ fn main() {
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Rust Graphics - Raytracer",
+        "Rust Graphics - Proyect 2 Raytracer",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -156,12 +174,31 @@ fn main() {
     window.update();
 
     // Materiales para las partes del oso
-    let brown = Material::new(Color::new(139, 69, 19), 1.0, [0.9, 10.0]);
+    let brown = Material::new(
+        Color::new(139, 69, 19),
+        1.0,
+        [0.9, 10.0, 0.0]);
     
-    let white = Material::new(Color::new(255, 255, 255), 1.0, [0.9, 10.0]);
+    let white = Material::new(
+        Color::new(255, 255, 255), 
+        1.0, 
+        [0.9, 10.0, 0.0]);
 
-    let black = Material::new(Color::new(0, 0, 0), 1.0,[0.9, 10.0]);
+    let black = Material::new(
+        Color::new(78, 20, 15), 
+        1.0,
+        [0.9, 10.0, 0.0]);
 
+    let red = Material::new(
+        Color::new(239, 54, 66), 
+        1.0, 
+        [0.9, 10.0, 0.0]);
+
+    let mirror = Material::new(
+        Color::new(255, 255, 255),
+        1425.0,
+        [0.0, 10.0, 0.8],
+    );
 
     // Objetos del oso
     let objects = [
@@ -176,13 +213,13 @@ fn main() {
         Sphere {
             center: Vec3::new(-0.4, 0.2, -4.5),
             radius: 0.1,
-            material: black,
+            material: red,
         },
         // Ojo derecho (negro pequeño)
         Sphere {
             center: Vec3::new(0.4, 0.2, -4.5),
             radius: 0.1,
-            material: black,
+            material: red,
         },
         // Hocico (blanco grande)
         Sphere {
@@ -220,6 +257,11 @@ fn main() {
             radius: 1.5,
             material: brown,
         },
+        Sphere { 
+            center: Vec3::new(-0.3, 0.3, 1.5), 
+            radius: 0.3, 
+            material: mirror 
+        },
     ];
 
     // Initialize camera
@@ -231,7 +273,7 @@ fn main() {
     let rotation_speed = PI/10.0;
 
     let light = Light::new(
-        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(1.0, -1.0, 5.0),
         Color::new(255, 255, 255),
         1.0
     );
