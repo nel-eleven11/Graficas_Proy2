@@ -10,14 +10,22 @@ mod ray_intersect;
 mod sphere; 
 mod color;
 mod camera;
+mod material;
+mod light;
 
 use framebuffer::Framebuffer;
 use sphere::Sphere;
 use color::Color;
-use ray_intersect::{Intersect, RayIntersect, Material};
+use ray_intersect::{Intersect, RayIntersect};
 use camera::Camera;
+use light::Light;
+use material::Material;
 
-pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> Color {
+fn reflect(incident: &Vec3, normal: &Vec3) -> Vec3 {
+    incident - 2.0 * incident.dot(normal) * normal
+}
+
+pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere], light: &Light) -> Color {
     let mut intersect = Intersect::empty();
     let mut zbuffer = f32::INFINITY;  // what is the closest element this ray has hit? 
 
@@ -35,20 +43,37 @@ pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> 
         return Color::new(4, 12, 36);
     }
     
-    let diffuse = intersect.material.diffuse;
+    let light_dir = (light.position - intersect.point).normalize();
+    let view_dir = (ray_origin - intersect.point).normalize();
+    let reflect_dir = reflect(&-light_dir, &intersect.normal);
 
-    diffuse
+
+    let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
+    let diffuse = intersect.material.diffuse * intersect.material.albedo[0] * diffuse_intensity * light.intensity;
+
+    let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
+    let specular = light.color * intersect.material.albedo[1] * specular_intensity * light.intensity;
+
+    diffuse + specular
 }
 
-pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere]) {
+pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere], camera: &Camera, light: &Light) {
     let width = framebuffer.width as f32;
     let height = framebuffer.height as f32;
     let aspect_ratio = width / height;
     let fov = PI/3.0;
     let perspective_scale = (fov * 0.5).tan();
 
+    // random number generator
+    // let mut rng = rand::thread_rng();
+
     for y in 0..framebuffer.height {
         for x in 0..framebuffer.width {
+            // if rng.gen_range(0.0..1.0) < 0.3 {
+            //     // we skip 30% of the points
+            //     continue;
+            // }
+
             // Map the pixel coordinate to screen space [-1, 1]
             let screen_x = (2.0 * x as f32) / width - 1.0;
             let screen_y = -(2.0 * y as f32) / height + 1.0;
@@ -60,8 +85,11 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere]) {
             // Calculate the direction of the ray for this pixel
             let ray_direction = normalize(&Vec3::new(screen_x, screen_y, -1.0));
 
+            // Apply camera rotation to the ray direction
+            let rotated_direction = camera.basis_change(&ray_direction);
+
             // Cast the ray and get the pixel color
-            let pixel_color = cast_ray(&Vec3::new(0.0, 0.0, 0.0), &ray_direction, objects);
+            let pixel_color = cast_ray(&camera.eye, &rotated_direction, objects, light);
 
             // Draw the pixel on screen with the returned color
             framebuffer.set_current_color(pixel_color.to_hex());
@@ -69,6 +97,7 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere]) {
         }
     }
 }
+
 
 fn main() {
     let window_width = 800;
@@ -79,7 +108,7 @@ fn main() {
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Rust Graphics - Oso Renderizado",
+        "Rust Graphics - Raytracer",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -90,17 +119,12 @@ fn main() {
     window.update();
 
     // Materiales para las partes del oso
-    let brown = Material {
-        diffuse: Color::new(139, 69, 19), // Marrón para la cabeza y orejas
-    };
+    let brown = Material::new(Color::new(139, 69, 19), 1.0, [0.9, 10.0]);
+    
+    let white = Material::new(Color::new(255, 255, 255), 1.0, [0.9, 10.0]);
 
-    let white = Material {
-        diffuse: Color::new(255, 255, 255), // Blanco para el hocico y parte interna de las orejas
-    };
+    let black = Material::new(Color::new(0, 0, 0), 1.0,[0.9, 10.0]);
 
-    let black = Material {
-        diffuse: Color::new(0, 0, 0), // Negro para los ojos y la nariz
-    };
 
     // Objetos del oso
     let objects = [
@@ -169,6 +193,12 @@ fn main() {
     );
     let rotation_speed = PI/10.0;
 
+    let light = Light::new(
+        Vec3::new(5.0, 5.0, 5.0),
+        Color::new(255, 255, 255),
+        1.0
+    );
+
     while window.is_open() {
         // listen to inputs
         if window.is_key_down(Key::Escape) {
@@ -190,7 +220,7 @@ fn main() {
         }
 
         // Dibujar los objetos del oso
-        render(&mut framebuffer, &objects);
+        render(&mut framebuffer, &objects, &camera, &light);
 
         // Actualizar la ventana con los contenidos del framebuffer
         window
