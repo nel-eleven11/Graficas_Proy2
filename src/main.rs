@@ -77,7 +77,7 @@ fn main() {
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Rust Graphics - Raytracer Example",
+        "Rust Graphics - Oso Renderizado",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -87,38 +87,88 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    let rubber = Material {
-        diffuse: Color::new(80, 0, 0)
+    // Materiales para las partes del oso
+    let brown = Material {
+        diffuse: Color::new(139, 69, 19), // Marrón para la cabeza y orejas
     };
 
-    let ivory = Material {
-        diffuse: Color::new(100, 100, 80)
+    let white = Material {
+        diffuse: Color::new(255, 255, 255), // Blanco para el hocico y parte interna de las orejas
     };
 
+    let black = Material {
+        diffuse: Color::new(0, 0, 0), // Negro para los ojos y la nariz
+    };
+
+    // Objetos del oso
     let objects = [
+        
+        // Nariz (negra pequeña)
         Sphere {
-            center: Vec3::new(1.0, 0.0, -4.0),
-            radius: 1.0,
-            material: ivory,
+            center: Vec3::new(0.0, -0.5, -4.2),
+            radius: 0.2,
+            material: black,
         },
+        // Ojo izquierdo (negro pequeño)
         Sphere {
-            center: Vec3::new(2.0, 0.0, -5.0),
-            radius: 1.0,
-            material: rubber
+            center: Vec3::new(-0.4, 0.2, -4.5),
+            radius: 0.1,
+            material: black,
+        },
+        // Ojo derecho (negro pequeño)
+        Sphere {
+            center: Vec3::new(0.4, 0.2, -4.5),
+            radius: 0.1,
+            material: black,
+        },
+        // Hocico (blanco grande)
+        Sphere {
+            center: Vec3::new(0.0, -0.6, -4.5),
+            radius: 0.7,
+            material: white,
+        },
+        // Parte interna de la oreja izquierda (blanca)
+        Sphere {
+            center: Vec3::new(-1.1, 1.1, -4.5),
+            radius: 0.4,
+            material: white,
+        },
+        // Parte interna de la oreja derecha (blanca)
+        Sphere {
+            center: Vec3::new(1.1, 1.1, -4.5),
+            radius: 0.4,
+            material: white,
+        },
+        // Oreja izquierda (marrón externa)
+        Sphere {
+            center: Vec3::new(-1.2, 1.2, -5.0),
+            radius: 0.6,
+            material: brown,
+        },
+        // Oreja derecha (marrón externa)
+        Sphere {
+            center: Vec3::new(1.2, 1.2, -5.0),
+            radius: 0.6,
+            material: brown,
+        },
+        // Cabeza principal
+        Sphere {
+            center: Vec3::new(0.0, 0.0, -5.0),
+            radius: 1.5,
+            material: brown,
         },
     ];
 
     while window.is_open() {
-        // listen to inputs
+        // Escuchar entradas
         if window.is_key_down(Key::Escape) {
             break;
         }
 
-        // draw some points
+        // Dibujar los objetos del oso
         render(&mut framebuffer, &objects);
 
-
-        // update the window with the framebuffer contents
+        // Actualizar la ventana con los contenidos del framebuffer
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
             .unwrap();
