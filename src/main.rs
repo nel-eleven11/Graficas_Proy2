@@ -9,11 +9,13 @@ mod framebuffer;
 mod ray_intersect;
 mod sphere; 
 mod color;
+mod camera;
 
 use framebuffer::Framebuffer;
 use sphere::Sphere;
 use color::Color;
 use ray_intersect::{Intersect, RayIntersect, Material};
+use camera::Camera;
 
 pub fn cast_ray(ray_origin: &Vec3, ray_direction: &Vec3, objects: &[Sphere]) -> Color {
     let mut intersect = Intersect::empty();
@@ -159,10 +161,32 @@ fn main() {
         },
     ];
 
+    // Initialize camera
+    let mut camera = Camera::new(
+        Vec3::new(0.0, 0.0, 5.0),  // eye: Initial camera position
+        Vec3::new(0.0, 0.0, 0.0),  // center: Point the camera is looking at (origin)
+        Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
+    );
+    let rotation_speed = PI/10.0;
+
     while window.is_open() {
-        // Escuchar entradas
+        // listen to inputs
         if window.is_key_down(Key::Escape) {
             break;
+        }
+
+        //  camera orbit controls
+        if window.is_key_down(Key::Left) {
+            camera.orbit(rotation_speed, 0.0);
+        }
+        if window.is_key_down(Key::Right) {
+            camera.orbit(-rotation_speed, 0.0);
+        }
+        if window.is_key_down(Key::Up) {
+            camera.orbit(0.0, -rotation_speed);
+        }
+        if window.is_key_down(Key::Down) {
+            camera.orbit(0.0, rotation_speed);
         }
 
         // Dibujar los objetos del oso
