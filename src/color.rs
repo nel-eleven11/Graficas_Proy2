@@ -1,4 +1,5 @@
 // color.rs
+
 use std::fmt;
 
 #[derive(Debug, Clone, Copy)]
