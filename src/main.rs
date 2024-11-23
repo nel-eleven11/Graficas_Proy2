@@ -12,6 +12,7 @@ mod color;
 mod camera;
 mod material;
 mod light;
+mod texture;
 
 use framebuffer::Framebuffer;
 use sphere::Sphere;
@@ -20,6 +21,7 @@ use ray_intersect::{Intersect, RayIntersect};
 use camera::Camera;
 use light::Light;
 use material::Material;
+use texture::Texture;
 
 const ORIGIN_BIAS: f32 = 1e-4;
 const SKYBOX_COLOR: Color = Color::new(68, 142, 228);
@@ -123,7 +125,8 @@ pub fn cast_ray(
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
-    let diffuse = intersect.material.diffuse * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
+    let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v);
+    let diffuse = diffuse_color * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
 
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
@@ -160,9 +163,8 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Sphere], camera: &Camera
 
     for y in 0..framebuffer.height {
         for x in 0..framebuffer.width {
-            // if rng.gen_range(0.0..1.0) < 0.3 {
-            //     // we skip 30% of the points
-            //     continue;
+            // if rng.gen_range(0.0..1.0) < 0.9 {
+            //      continue;
             // }
 
             // Map the pixel coordinate to screen space [-1, 1]
@@ -208,104 +210,31 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    // Materiales para las partes del oso
-    let brown = Material::new(
-        Color::new(139, 69, 19),
+    let rubber = Material::new_with_texture(
         1.0,
-        [0.9, 10.0, 0.0, 0.0],
-        0.0,
-    );
-    
-    let white = Material::new(
-        Color::new(255, 255, 255), 
-        1.0, 
-        [0.9, 10.0, 0.0, 0.0],
+        [0.9, 0.1, 0.0, 0.0],
         0.0,
     );
 
-    let black = Material::new(
-        Color::new(78, 20, 15), 
-        1.0,
-        [0.9, 10.0, 0.0, 0.0],
+    let ivory = Material::new(
+        Color::new(100, 100, 80),
+        50.0,
+        [0.6, 0.3, 0.6, 0.0],
         0.0,
     );
 
-    let red = Material::new(
-        Color::new(239, 54, 66), 
-        1.0, 
-        [0.9, 10.0, 0.0, 0.0],
-        0.0,
-    );
-
-    let mirror = Material::new(
+    let glass = Material::new(
         Color::new(255, 255, 255),
         1425.0,
         [0.0, 10.0, 0.5, 0.5],
         0.3,
     );
 
-    // Objetos del oso
     let objects = [
-        
-        // Nariz (negra pequeña)
-        Sphere {
-            center: Vec3::new(0.0, -0.5, -4.2),
-            radius: 0.2,
-            material: black,
-        },
-        // Ojo izquierdo (negro pequeño)
-        Sphere {
-            center: Vec3::new(-0.4, 0.2, -4.5),
-            radius: 0.1,
-            material: red,
-        },
-        // Ojo derecho (negro pequeño)
-        Sphere {
-            center: Vec3::new(0.4, 0.2, -4.5),
-            radius: 0.1,
-            material: red,
-        },
-        // Hocico (blanco grande)
-        Sphere {
-            center: Vec3::new(0.0, -0.6, -4.5),
-            radius: 0.7,
-            material: white,
-        },
-        // Parte interna de la oreja izquierda (blanca)
-        Sphere {
-            center: Vec3::new(-1.1, 1.1, -4.5),
-            radius: 0.4,
-            material: white,
-        },
-        // Parte interna de la oreja derecha (blanca)
-        Sphere {
-            center: Vec3::new(1.1, 1.1, -4.5),
-            radius: 0.4,
-            material: white,
-        },
-        // Oreja izquierda (marrón externa)
-        Sphere {
-            center: Vec3::new(-1.2, 1.2, -5.0),
-            radius: 0.6,
-            material: brown,
-        },
-        // Oreja derecha (marrón externa)
-        Sphere {
-            center: Vec3::new(1.2, 1.2, -5.0),
-            radius: 0.6,
-            material: brown,
-        },
-        // Cabeza principal
-        Sphere {
-            center: Vec3::new(0.0, 0.0, -5.0),
-            radius: 1.5,
-            material: brown,
-        },
-        Sphere { 
-            center: Vec3::new(-0.3, 0.3, 1.5), 
-            radius: 0.3, 
-            material: mirror 
-        },
+        Sphere { center: Vec3::new(0.0, 0.0, 0.0), radius: 1.0, material: rubber },
+        Sphere { center: Vec3::new(-1.0, -1.0, 1.5), radius: 0.5, material: ivory },
+        Sphere { center: Vec3::new(-0.3, 0.3, 1.5), radius: 0.3, material: glass },
+        // Sphere { center: Vec3::new(-2.0, 2.0, -5.0), radius: 1.0, material: ivory },
     ];
 
     // Initialize camera
@@ -314,7 +243,9 @@ fn main() {
         Vec3::new(0.0, 0.0, 0.0),  // center: Point the camera is looking at (origin)
         Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
     );
+
     let rotation_speed = PI/10.0;
+    let zoom_speed = 0.1;
 
     let light = Light::new(
         Vec3::new(1.0, -1.0, 5.0),
@@ -342,8 +273,18 @@ fn main() {
             camera.orbit(0.0, rotation_speed);
         }
 
-        // Dibujar los objetos del oso
-        render(&mut framebuffer, &objects, &camera, &light);
+        // camera zoom controls
+        if window.is_key_down(Key::W) {
+            camera.zoom(zoom_speed);
+        }
+        if window.is_key_down(Key::S) {
+            camera.zoom(-zoom_speed);
+        }
+
+        if camera.is_changed() {
+            // Render the scene
+            render(&mut framebuffer, &objects, &camera, &light);
+        }
 
         // Actualizar la ventana con los contenidos del framebuffer
         window

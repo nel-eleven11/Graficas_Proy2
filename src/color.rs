@@ -1,5 +1,4 @@
 // color.rs
-
 use std::fmt;
 
 #[derive(Debug, Clone, Copy)]
@@ -30,6 +29,11 @@ impl Color {
     // Function to return the color as a hex value
     pub fn to_hex(&self) -> u32 {
         ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
+    }
+
+    // Function to return the color as a hex value
+    pub fn is_black(&self) -> bool {
+        self.r == 0 && self.g == 0 && self.b == 0
     }
 }
 
