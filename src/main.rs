@@ -210,6 +210,13 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
+    // let rubber = Material::new(
+    //     Color::new(255, 100, 80),
+    //     1.0,
+    //     [0.9, 0.1, 0.0, 0.0],
+    //     0.0,
+    // );
+
     let rubber = Material::new_with_texture(
         1.0,
         [0.9, 0.1, 0.0, 0.0],
@@ -236,6 +243,7 @@ fn main() {
         Sphere { center: Vec3::new(-0.3, 0.3, 1.5), radius: 0.3, material: glass },
         // Sphere { center: Vec3::new(-2.0, 2.0, -5.0), radius: 1.0, material: ivory },
     ];
+
 
     // Initialize camera
     let mut camera = Camera::new(
@@ -274,10 +282,10 @@ fn main() {
         }
 
         // camera zoom controls
-        if window.is_key_down(Key::W) {
+        if window.is_key_down(Key::Q) {
             camera.zoom(zoom_speed);
         }
-        if window.is_key_down(Key::S) {
+        if window.is_key_down(Key::E) {
             camera.zoom(-zoom_speed);
         }
 
