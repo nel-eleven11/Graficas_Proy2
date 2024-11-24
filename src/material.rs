@@ -1,6 +1,6 @@
 // material.rs
 
-use once_cell::sync::Lazy;
+//use once_cell::sync::Lazy;
 use std::sync::Arc;
 use nalgebra_glm::Vec3;
 use crate::color::Color;
@@ -106,12 +106,51 @@ impl Material {
     pub fn glass() -> Self {
         Material {
             diffuse: Color::black(),
-            specular: 60.0,
+            specular: 40.0,
             albedo: [0.4, 0.6, 0.0, 0.9],
             refractive_index: 1.5,
-            has_texture: false,
+            has_texture: true,
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/glass.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn obsidian() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.6, 0.4, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/obsidian.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn diamond_ore() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.6, 0.4, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/diamond_ore.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn crying_osidian() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 20.0,
+            albedo: [0.1, 0.8, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/crying_obsidian.png"))),
             normal_map: None,
         }
     }

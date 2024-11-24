@@ -20,7 +20,8 @@ use color::Color;
 use ray_intersect::{Intersect, RayIntersect};
 use camera::Camera;
 use light::Light;
-use material::Material;
+//use material::Material;
+// use texture::Texture;
 use cube::Cube;
 use diorama::generate_diorama;
 
@@ -226,8 +227,8 @@ fn main() {
 
     // Initialize camera
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 5.0),  // eye: Initial camera position
-        Vec3::new(0.0, 0.0, 0.0),  // center: Point the camera is looking at (origin)
+        Vec3::new(-8.0, 5.0, -8.0),  // eye: Initial camera position
+        Vec3::new(0.0, 5.0, 7.0),  // center: Point the camera is looking at (origin)
         Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
     );
 
@@ -278,6 +279,10 @@ fn main() {
         }
         if window.is_key_down(Key::Key3) {  
             light.color = Color::new(128, 255, 128); // Greenish light
+            //println!("Current light color: {:?}", light.color);
+        }
+        if window.is_key_down(Key::Key4) {  
+            light.color = Color::new(255, 255, 255); // White light
             //println!("Current light color: {:?}", light.color);
         }
 

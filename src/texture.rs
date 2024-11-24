@@ -1,6 +1,6 @@
 // texture.rs
 
-use image::{ImageReader, DynamicImage, GenericImageView};
+use image::{ImageReader, /*DynamicImage,*/ GenericImageView};
 use std::fmt;
 use crate::color::Color;
 use image::Pixel;
