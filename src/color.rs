@@ -96,6 +96,17 @@ impl Mul<f32> for Color {
     }
 }
 
+// Implement addition assignment (+=) for Color
+use std::ops::AddAssign;
+
+impl AddAssign for Color {
+    fn add_assign(&mut self, other: Color) {
+        self.r = self.r.saturating_add(other.r);
+        self.g = self.g.saturating_add(other.g);
+        self.b = self.b.saturating_add(other.b);
+    }
+}
+
 // Implement display formatting for Color
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

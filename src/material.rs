@@ -15,6 +15,7 @@ pub struct Material {
     pub has_normal_map: bool,
 	pub texture: Option<Arc<Texture>>,       // Texture
     pub normal_map: Option<Arc<Texture>>,    // Normal map
+    pub emission: Color,
 }
 
 impl Material {
@@ -33,6 +34,7 @@ impl Material {
 		has_normal_map: false,
 		texture: None,
 		normal_map: None,
+        emission: Color::black(),
     }
 }
 
@@ -74,6 +76,7 @@ impl Material {
             has_normal_map: false,
 			texture: None,
 			normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -87,6 +90,7 @@ impl Material {
 			has_normal_map: false,
 			texture: None,
 			normal_map: None,
+            emission: Color::black(),
 		}
 	}
     
@@ -100,6 +104,7 @@ impl Material {
             has_normal_map: false,
 			texture: Some(Arc::new(Texture::new("assets/dirt.png"))),
 			normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -113,6 +118,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/glass.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -126,6 +132,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/obsidian.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -139,6 +146,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/diamond_ore.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -152,6 +160,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/crying_obsidian.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -165,6 +174,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/tnt_side.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -178,6 +188,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/beacon.png"))),
             normal_map: None,
+            emission: Color::new(0, 255, 255),
         }
     }
 
@@ -191,6 +202,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/cobblestone.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -204,6 +216,7 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/crafting_table_front.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }
 
@@ -217,8 +230,23 @@ impl Material {
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/bookshelf.png"))),
             normal_map: None,
+            emission: Color::black(),
         }
     }	
+
+    pub fn redstone_lamp() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.8, 0.4, 0.45, 0.0],
+            refractive_index: 0.1,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/redstone_lamp.png"))),
+            normal_map: None,
+            emission: Color::new(255, 100, 0),
+        }
+    }
 
 	
 }

@@ -96,11 +96,10 @@ pub fn cast_ray(
     ray_direction: &Vec3,
     objects: &[Cube],
     light: &Light,
-    depth: u32, // this value should initially be 0
-                // and should be increased by 1 in each recursion
+    depth: u32,
 ) -> Color {
-    if depth > 3 {  // default recursion depth
-        return SKYBOX_COLOR; // Max recursion depth reached
+    if depth > 3 {
+        return SKYBOX_COLOR;
     }
 
     let mut intersect = Intersect::empty();
@@ -115,9 +114,11 @@ pub fn cast_ray(
     }
 
     if !intersect.is_intersecting {
-        // return default sky box color
         return SKYBOX_COLOR;
     }
+
+    // Add emission directly if the material is emissive
+    let mut result_color = intersect.material.emission;
 
     let light_dir = (light.position - intersect.point).normalize();
     let view_dir = (ray_origin - intersect.point).normalize();
@@ -127,16 +128,8 @@ pub fn cast_ray(
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
-    let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v,);
-
-    let diffuse = Color::from_vec3(
-        diffuse_color
-            .to_vec3()
-            .component_mul(&light.color.to_vec3()) 
-            * intersect.material.albedo[0]
-            * diffuse_intensity
-            * light_intensity,
-    );
+    let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v);
+    let diffuse = diffuse_color * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
 
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
@@ -149,7 +142,6 @@ pub fn cast_ray(
         reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, light, depth + 1);
     }
 
-
     let mut refract_color = Color::black();
     let transparency = intersect.material.albedo[3];
     if transparency > 0.0 {
@@ -158,8 +150,14 @@ pub fn cast_ray(
         refract_color = cast_ray(&refract_origin, &refract_dir, objects, light, depth + 1);
     }
 
-    (diffuse + specular) * (1.0 - reflectivity - transparency) + (reflect_color * reflectivity) + (refract_color * transparency)
+    // Combine emissive color with other effects
+    result_color += (diffuse + specular) * (1.0 - reflectivity - transparency)
+        + (reflect_color * reflectivity)
+        + (refract_color * transparency);
+
+    result_color
 }
+
 
 pub fn render(framebuffer: &mut Framebuffer, objects: &[Cube], camera: &Camera, light: &Light) {
     let width = framebuffer.width as f32;
@@ -228,7 +226,7 @@ fn main() {
     // Initialize camera
     let mut camera = Camera::new(
         Vec3::new(5.0, 2.0, 15.0),  // eye: Initial camera position
-        Vec3::new(0.0, 5.0, 0.0),  // center: Point the camera is looking at (origin)
+        Vec3::new(0.0, 5.0, 2.0),  // center: Point the camera is looking at (origin)
         Vec3::new(0.0, 2.0, 0.0)   // up: World up vector
     );
 
