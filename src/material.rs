@@ -7,8 +7,6 @@ use crate::color::Color;
 use crate::texture::Texture;
 
 
-static DIRT_TEXTURE: Lazy<Arc<Texture>> = Lazy::new(|| Arc::new(Texture::new("assets/dirt.png")));
-
 #[derive(Debug, Clone)]
 pub struct Material {
     pub diffuse: Color,
@@ -63,7 +61,7 @@ impl Material {
             refractive_index: 0.0,
             has_texture: true,
             has_normal_map: false,
-			texture: Some(DIRT_TEXTURE.clone()),
+			texture: Some(Arc::new(Texture::new("assets/dirt.png"))),
 			normal_map: None,
         }
     }
@@ -82,15 +80,14 @@ impl Material {
 	}
 
 	pub fn get_diffuse_color(&self, u: f32, v: f32) -> Color {
-		if self.has_texture {
-			if let Some(texture) = &self.texture {
-				let x = (u * (texture.width as f32 - 1.0)) as usize;
-				let y = ((1.0 - v) * (texture.height as f32 - 1.0)) as usize;
-				return texture.get_color(x, y);
-			}
-		}
-		self.diffuse
-	}
+        if let Some(texture) = &self.texture {
+            let x = (u * (texture.width as f32 - 1.0)) as usize;
+            let y = ((1.0 - v) * (texture.height as f32 - 1.0)) as usize;
+            texture.get_color(x, y)
+        } else {
+            self.diffuse
+        }
+    }
 
     pub fn get_normal_from_map(&self, u: f32, v: f32) -> Vec3 {
         if self.has_normal_map {

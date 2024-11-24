@@ -34,6 +34,26 @@ impl Cube {
 
         normal
     }
+
+	// Calculate UV coordinates for each face
+    fn get_uv(&self, point: &Vec3) -> (f32, f32) {
+        let size = self.max - self.min; // Size of the cube
+        let local_point = (point - self.min).component_div(&size); // Normalize point to [0, 1]
+
+        if (point.x - self.min.x).abs() < 1e-4 { // Left face
+            (local_point.z, local_point.y)
+        } else if (point.x - self.max.x).abs() < 1e-4 { // Right face
+            (local_point.z, local_point.y)
+        } else if (point.y - self.min.y).abs() < 1e-4 { // Bottom face
+            (local_point.x, local_point.z)
+        } else if (point.y - self.max.y).abs() < 1e-4 { // Top face
+            (local_point.x, local_point.z)
+        } else if (point.z - self.min.z).abs() < 1e-4 { // Back face
+            (local_point.x, local_point.y)
+        } else { // Front face
+            (local_point.x, local_point.y)
+        }
+    }
 }
 
 impl RayIntersect for Cube {
@@ -83,8 +103,18 @@ impl RayIntersect for Cube {
         }
 
         let hit_point = ray_origin + ray_direction * t_min;
-        let normal = self.get_normal(&hit_point);
+        let geometric_normal = self.get_normal(&hit_point); // Normal at the hit point
 
-        Intersect::new(hit_point, normal, t_min, self.material.clone(), 0.0, 0.0)
+        // Use get_uv to calculate texture coordinates
+        let (u, v) = self.get_uv(&hit_point);
+
+        Intersect::new(
+            hit_point,
+            geometric_normal,
+            t_min,
+            self.material.clone(),
+            u, // Pass u
+            v, // Pass v
+        )
     }
 }
