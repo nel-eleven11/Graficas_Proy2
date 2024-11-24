@@ -127,7 +127,15 @@ pub fn cast_ray(
 
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
     let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v,);
-    let diffuse = diffuse_color * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
+
+    let diffuse = Color::from_vec3(
+        diffuse_color
+            .to_vec3()
+            .component_mul(&light.color.to_vec3()) 
+            * intersect.material.albedo[0]
+            * diffuse_intensity
+            * light_intensity,
+    );
 
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
     let specular = light.color * intersect.material.albedo[1] * specular_intensity * light_intensity;
@@ -226,10 +234,10 @@ fn main() {
     let rotation_speed = PI/10.0;
     let zoom_speed = 0.1;
 
-    let light = Light::new(
-        Vec3::new(1.0, -1.0, 5.0),
+    let mut light = Light::new(
+        Vec3::new(2.5, 3.0, 2.5),
         Color::new(255, 255, 255),
-        1.0
+        2.0
     );
 
     while window.is_open() {
@@ -237,7 +245,6 @@ fn main() {
         if window.is_key_down(Key::Escape) {
             break;
         }
-
         //  camera orbit controls
         if window.is_key_down(Key::Left) {
             camera.orbit(rotation_speed, 0.0);
@@ -260,10 +267,24 @@ fn main() {
             camera.zoom(-zoom_speed);
         }
 
-        if camera.is_changed() {
-            // Render the scene
-            render(&mut framebuffer, &objects, &camera, &light);
+        // Change light color
+        if window.is_key_down(Key::Key1) {  
+            light.color = Color::new(255, 223, 128); // Warm light
+            //println!("Current light color: {:?}", light.color);
         }
+        if window.is_key_down(Key::Key2) {  
+            light.color = Color::new(128, 128, 255); // Cool light
+            //println!("Current light color: {:?}", light.color);
+        }
+        if window.is_key_down(Key::Key3) {  
+            light.color = Color::new(128, 255, 128); // Greenish light
+            //println!("Current light color: {:?}", light.color);
+        }
+
+        framebuffer.clear();
+
+        // Re-render the scene with the updated light
+        render(&mut framebuffer, &objects, &camera, &light);
 
         // Update the window with the rendered frame
         window

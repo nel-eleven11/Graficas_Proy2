@@ -1,6 +1,7 @@
 // color.rs
 
 use std::fmt;
+use nalgebra_glm::Vec3;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
@@ -36,6 +37,33 @@ impl Color {
     pub fn is_black(&self) -> bool {
         self.r == 0 && self.g == 0 && self.b == 0
     }
+
+    /// Convert the color to an f32 representation
+    pub fn to_f32(&self) -> Color {
+        Color {
+            r: (self.r as f32 / 255.0) as u8,
+            g: (self.g as f32 / 255.0) as u8,
+            b: (self.b as f32 / 255.0) as u8,
+        }
+    }
+
+    // Convert to a Vec3 representation
+    pub fn to_vec3(&self) -> Vec3 {
+        Vec3::new(
+            self.r as f32 / 255.0,
+            self.g as f32 / 255.0,
+            self.b as f32 / 255.0,
+        )
+    }
+
+    // Create a Color from a Vec3
+    pub fn from_vec3(vec: Vec3) -> Self {
+        Color {
+            r: (vec.x.clamp(0.0, 1.0) * 255.0) as u8,
+            g: (vec.y.clamp(0.0, 1.0) * 255.0) as u8,
+            b: (vec.z.clamp(0.0, 1.0) * 255.0) as u8,
+        }
+    }   
 }
 
 // Implement addition for Color
