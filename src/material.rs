@@ -94,7 +94,7 @@ impl Material {
         Material {
             diffuse: Color::black(), //Ignore when texture is present
             specular: 10.0,
-            albedo: [0.9, 0.05, 0.0, 0.0],
+            albedo: [0.7, 0.3, 0.0, 0.0],
             refractive_index: 0.0,
             has_texture: true,
             has_normal_map: false,
@@ -106,9 +106,9 @@ impl Material {
     pub fn glass() -> Self {
         Material {
             diffuse: Color::black(),
-            specular: 40.0,
-            albedo: [0.4, 0.6, 0.0, 0.9],
-            refractive_index: 1.5,
+            specular: 30.0,
+            albedo: [0.7, 0.7, 0.0, 0.7],
+            refractive_index: 0.4,
             has_texture: true,
             has_normal_map: false,
             texture: Some(Arc::new(Texture::new("assets/glass.png"))),
@@ -145,8 +145,8 @@ impl Material {
     pub fn crying_osidian() -> Self {
         Material {
             diffuse: Color::black(),
-            specular: 20.0,
-            albedo: [0.1, 0.8, 0.1, 0.0],
+            specular: 25.0,
+            albedo: [0.3, 0.6, 0.1, 0.0],
             refractive_index: 0.0,
             has_texture: true,
             has_normal_map: false,
@@ -154,7 +154,71 @@ impl Material {
             normal_map: None,
         }
     }
-	
+
+    pub fn tnt() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 1.0,
+            albedo: [0.7, 0.4, 0.0, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/tnt_side.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn beacon() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 50.0,
+            albedo: [0.9, 0.4, 0.5, 0.0],
+            refractive_index: 0.5,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/beacon.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn cobblestone() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.7, 0.1, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/cobblestone.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn crafting_table() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.80, 0.2, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/crafting_table_front.png"))),
+            normal_map: None,
+        }
+    }
+
+    pub fn bookshelf() -> Self {
+        Material {
+            diffuse: Color::black(),
+            specular: 5.0,
+            albedo: [0.75, 0.4, 0.1, 0.0],
+            refractive_index: 0.0,
+            has_texture: true,
+            has_normal_map: false,
+            texture: Some(Arc::new(Texture::new("assets/bookshelf.png"))),
+            normal_map: None,
+        }
+    }	
 
 	
 }
