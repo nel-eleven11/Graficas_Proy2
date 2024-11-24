@@ -13,6 +13,7 @@ mod material;
 mod light;
 mod texture;
 mod cube;
+mod diorama;
 
 use framebuffer::Framebuffer;
 use color::Color;
@@ -21,6 +22,7 @@ use camera::Camera;
 use light::Light;
 use material::Material;
 use cube::Cube;
+use diorama::generate_diorama;
 
 const ORIGIN_BIAS: f32 = 1e-4;
 const SKYBOX_COLOR: Color = Color::new(68, 142, 228);
@@ -124,7 +126,7 @@ pub fn cast_ray(
     let light_intensity = light.intensity * (1.0 - shadow_intensity);
 
     let diffuse_intensity = intersect.normal.dot(&light_dir).max(0.0).min(1.0);
-    let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v);
+    let diffuse_color = intersect.material.get_diffuse_color(intersect.u, intersect.v,);
     let diffuse = diffuse_color * intersect.material.albedo[0] * diffuse_intensity * light_intensity;
 
     let specular_intensity = view_dir.dot(&reflect_dir).max(0.0).powf(intersect.material.specular);
@@ -210,54 +212,8 @@ fn main() {
     window.update();
 
     
-    let rubber = Material::new_with_texture(
-        1.0,
-        [0.9, 0.1, 0.0, 0.0],
-        0.0,
-    );
-
-    let ivory = Material::new(
-        Color::new(100, 100, 80),
-        50.0,
-        [0.6, 0.3, 0.6, 0.0],
-        0.0,
-    );
-
-    let glass = Material::new(
-        Color::new(255, 255, 255),
-        1425.0,
-        [0.0, 10.0, 0.5, 0.5],
-        0.3,
-    );
-
-    let objects = [
-        Cube::new(
-            Vec3::new(-1.0, -1.0, -1.0),
-            Vec3::new(1.0, 1.0, 1.0),
-            Material::new(Color::new(255, 0, 0), 50.0, [0.6, 0.3, 0.1, 0.0], 1.0)
-        ),
-        Cube::new(
-            Vec3::new(-2.0, -2.0, -2.0),
-            Vec3::new(-1.0, -1.0, -1.0),
-            Material::new(Color::new(0, 255, 0), 50.0, [0.6, 0.3, 0.1, 0.0], 1.0)
-        ),
-        Cube::new(
-            Vec3::new(1.0, 1.0, 1.0),
-            Vec3::new(2.0, 2.0, 2.0),
-            glass,
-        ),
-        Cube::new(
-            Vec3::new(-2.0, -2.0, -2.0),
-            Vec3::new(2.0, 2.0, 2.0),
-            ivory,
-        ),
-        Cube::new(
-            Vec3::new(-2.0, -2.0, -2.0),
-            Vec3::new(2.0, 2.0, 2.0),
-            rubber,
-        ),
-
-    ];
+    // Generate scene
+    let objects = generate_diorama();
 
 
     // Initialize camera
@@ -309,7 +265,7 @@ fn main() {
             render(&mut framebuffer, &objects, &camera, &light);
         }
 
-        // Actualizar la ventana con los contenidos del framebuffer
+        // Update the window with the rendered frame
         window
             .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
             .unwrap();
