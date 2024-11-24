@@ -227,8 +227,8 @@ fn main() {
 
     // Initialize camera
     let mut camera = Camera::new(
-        Vec3::new(-8.0, 5.0, -8.0),  // eye: Initial camera position
-        Vec3::new(0.0, 5.0, 7.0),  // center: Point the camera is looking at (origin)
+        Vec3::new(0.0, 0.0, 5.0),  // eye: Initial camera position
+        Vec3::new(0.0, 0.0, 0.0),  // center: Point the camera is looking at (origin)
         Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
     );
 
