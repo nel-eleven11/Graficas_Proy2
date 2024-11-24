@@ -26,7 +26,8 @@ use cube::Cube;
 use diorama::generate_diorama;
 
 const ORIGIN_BIAS: f32 = 1e-4;
-const SKYBOX_COLOR: Color = Color::new(68, 142, 228);
+// el skybox debe tener un color azul oscuro
+const SKYBOX_COLOR: Color = Color::new(40, 24, 128);
 
 fn offset_origin(intersect: &Intersect, direction: &Vec3) -> Vec3 {
     let offset = intersect.normal * ORIGIN_BIAS;
@@ -225,18 +226,19 @@ fn main() {
 
     // Initialize camera
     let mut camera = Camera::new(
-        Vec3::new(5.0, 2.0, 15.0),  // eye: Initial camera position
-        Vec3::new(0.0, 5.0, 2.0),  // center: Point the camera is looking at (origin)
-        Vec3::new(0.0, 2.0, 0.0)   // up: World up vector
+        Vec3::new(10.0, 15.0, 15.0),  // eye: Initial camera position
+        Vec3::new(2.5, 3.0, 2.5),  // center: Point the camera is looking at (origin)
+        Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
     );
 
     let rotation_speed = PI/10.0;
-    let zoom_speed = 0.1;
+    let zoom_speed = 0.5;
 
+    // Initialize light
     let mut light = Light::new(
-        Vec3::new(3.0, 10.0, 3.0),
-        Color::new(255, 255, 255),
-        2.0
+        Vec3::new(5.0, 10.0, 5.0),
+        Color::new(255, 255, 200),
+        2.5
     );
 
     while window.is_open() {
