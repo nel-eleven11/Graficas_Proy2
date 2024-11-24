@@ -227,16 +227,16 @@ fn main() {
 
     // Initialize camera
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 5.0),  // eye: Initial camera position
-        Vec3::new(0.0, 0.0, 0.0),  // center: Point the camera is looking at (origin)
-        Vec3::new(0.0, 1.0, 0.0)   // up: World up vector
+        Vec3::new(5.0, 2.0, 15.0),  // eye: Initial camera position
+        Vec3::new(0.0, 5.0, 0.0),  // center: Point the camera is looking at (origin)
+        Vec3::new(0.0, 2.0, 0.0)   // up: World up vector
     );
 
     let rotation_speed = PI/10.0;
     let zoom_speed = 0.1;
 
     let mut light = Light::new(
-        Vec3::new(2.5, 3.0, 2.5),
+        Vec3::new(3.0, 10.0, 3.0),
         Color::new(255, 255, 255),
         2.0
     );
