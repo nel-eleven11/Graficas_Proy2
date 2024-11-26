@@ -76,11 +76,12 @@ fn cast_shadow(
     objects: &[Cube],
 ) -> f32 {
     let light_dir = (light.position - intersect.point).normalize();
-    let light_distance = (light.position - intersect.point).magnitude();
+    //let light_distance = (light.position - intersect.point).magnitude();
 
     let shadow_ray_origin = offset_origin(intersect, &light_dir);
-    let mut shadow_intensity = 0.0;
+    //let mut shadow_intensity = 0.0;
 
+    /* 
     for object in objects {
         let shadow_intersect = object.ray_intersect(&shadow_ray_origin, &light_dir);
         if shadow_intersect.is_intersecting && shadow_intersect.distance < light_distance {
@@ -88,9 +89,19 @@ fn cast_shadow(
             shadow_intensity = 1.0 - distance_ratio.powf(2.0).min(1.0);
             break;
         }
-    }
+    }*/
 
-    shadow_intensity
+    if objects.iter().any(|object| {
+        let shadow_intersect = object.ray_intersect(&shadow_ray_origin, &light_dir);
+        shadow_intersect.is_intersecting
+    }) {
+        return 1.0; 
+    } else {
+        return 0.0; 
+    }
+     
+
+    //shadow_intensity
 }
 
 pub fn cast_ray(
@@ -100,7 +111,7 @@ pub fn cast_ray(
     light: &Light,
     depth: u32,
 ) -> Color {
-    if depth > 3 {
+    if depth > 1 {
         return SKYBOX_COLOR;
     }
 
@@ -207,10 +218,10 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Cube], camera: &Camera, 
 }
 
 fn main() {
-    let window_width = 800;
-    let window_height = 600;
-    let framebuffer_width = 800;
-    let framebuffer_height = 600;
+    let window_width = 500;
+    let window_height = 350;
+    let framebuffer_width = 500;
+    let framebuffer_height = 350;
     let frame_delay = Duration::from_millis(16);
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
