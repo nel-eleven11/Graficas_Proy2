@@ -18,9 +18,17 @@ Un proyecto de trazado de rayos en Rust que implementa un diorama con cubos, uti
 
 
 ---
+### Gifs
 
+Lastimosamente mi computadora no pudo soportar el "estilo neutrón" de mi primer diorama, así que cree un más simple para mostrar el cambio de luces, que se aprecien mejor los materiales y la movilidad dentro del programa.
 
-## Gif
+## Gif - diorama 2
+
+![proy2_gif](https://github.com/user-attachments/assets/a5911538-391c-4570-85a5-5ec52de4cc90)
+
+## Gif - diorama 1
+
+![proy2_g2](https://github.com/user-attachments/assets/3a373807-0f64-44c7-aef7-7164cb16cc3c)
 
 
 ---
