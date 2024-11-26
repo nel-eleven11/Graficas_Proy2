@@ -237,7 +237,7 @@ fn main() {
     window.update();
 
     // Variable for the diorama
-    let election = 2;
+    let election = 1;
     let objects: Vec<Cube>;
 
     if election == 1 {
@@ -314,11 +314,11 @@ fn main() {
         }
 
         // Only render every N frames to improve responsiveness
-        if frame % 5 == 0 {
-            framebuffer.clear();
-            render(&mut framebuffer, &objects, &camera, &light);
-        }
-        frame += 1;
+        //if frame % 5 == 0 {
+        framebuffer.clear();
+        render(&mut framebuffer, &objects, &camera, &light);
+        //}
+        //frame += 1;
 
         // Update the window with the rendered frame
         window
