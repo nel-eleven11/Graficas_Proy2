@@ -4,6 +4,7 @@ use nalgebra_glm::{Vec3, normalize};
 use minifb::{Key, Window, WindowOptions};
 use std::time::Duration;
 use std::f32::consts::PI;
+use rayon::prelude::*;
 
 mod framebuffer;
 mod ray_intersect;
@@ -106,12 +107,20 @@ pub fn cast_ray(
     let mut intersect = Intersect::empty();
     let mut zbuffer = f32::INFINITY;
 
-    for object in objects {
+    let closest = objects
+    .par_iter()
+    .filter_map(|object| {
         let i = object.ray_intersect(ray_origin, ray_direction);
-        if i.is_intersecting && i.distance < zbuffer {
-            zbuffer = i.distance;
-            intersect = i;
+        if i.is_intersecting {
+            Some(i)
+        } else {
+            None
         }
+    })
+    .min_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+
+    if let Some(i) = closest {
+        intersect = i;
     }
 
     if !intersect.is_intersecting {
@@ -167,37 +176,34 @@ pub fn render(framebuffer: &mut Framebuffer, objects: &[Cube], camera: &Camera, 
     let fov = PI/3.0;
     let perspective_scale = (fov * 0.5).tan();
 
-    // random number generator
-    // let mut rng = rand::thread_rng();
+    // Parallel iteration over rows (y-axis)
+    framebuffer
+        .buffer
+        .par_chunks_mut(framebuffer.width) // Divide the buffer into rows
+        .enumerate() // Keep track of row index (y)
+        .for_each(|(y, row)| {
+            for (x, pixel) in row.iter_mut().enumerate() {
+                // Map the pixel coordinate to screen space [-1, 1]
+                let screen_x = (2.0 * x as f32) / width - 1.0;
+                let screen_y = -(2.0 * y as f32) / height + 1.0;
 
-    for y in 0..framebuffer.height {
-        for x in 0..framebuffer.width {
-            // if rng.gen_range(0.0..1.0) < 0.9 {
-            //      continue;
-            // }
+                // Adjust for aspect ratio and perspective
+                let screen_x = screen_x * aspect_ratio * perspective_scale;
+                let screen_y = screen_y * perspective_scale;
 
-            // Map the pixel coordinate to screen space [-1, 1]
-            let screen_x = (2.0 * x as f32) / width - 1.0;
-            let screen_y = -(2.0 * y as f32) / height + 1.0;
+                // Calculate the direction of the ray for this pixel
+                let ray_direction = nalgebra_glm::normalize(&Vec3::new(screen_x, screen_y, -1.0));
 
-            // Adjust for aspect ratio and perspective 
-            let screen_x = screen_x * aspect_ratio * perspective_scale;
-            let screen_y = screen_y * perspective_scale;
+                // Apply camera rotation to the ray direction
+                let rotated_direction = camera.basis_change(&ray_direction);
 
-            // Calculate the direction of the ray for this pixel
-            let ray_direction = normalize(&Vec3::new(screen_x, screen_y, -1.0));
+                // Cast the ray and get the pixel color
+                let pixel_color = cast_ray(&camera.eye, &rotated_direction, objects, light, 0);
 
-            // Apply camera rotation to the ray direction
-            let rotated_direction = camera.basis_change(&ray_direction);
-
-            // Cast the ray and get the pixel color
-            let pixel_color = cast_ray(&camera.eye, &rotated_direction, objects, light, 0);
-
-            // Draw the pixel on screen with the returned color
-            framebuffer.set_current_color(pixel_color.to_hex());
-            framebuffer.point(x, y);
-        }
-    }
+                // Set the pixel color in the framebuffer
+                *pixel = pixel_color.to_hex();
+            }
+        });
 }
 
 fn main() {
@@ -240,6 +246,9 @@ fn main() {
         Color::new(255, 255, 200),
         2.5
     );
+
+    // Frame counter
+    let mut frame = 0; // Initialize the frame counter
 
     while window.is_open() {
         // listen to inputs
@@ -286,10 +295,12 @@ fn main() {
             //println!("Current light color: {:?}", light.color);
         }
 
-        framebuffer.clear();
-
-        // Re-render the scene with the updated light
-        render(&mut framebuffer, &objects, &camera, &light);
+        // Only render every N frames to improve responsiveness
+        if frame % 5 == 0 {
+            framebuffer.clear();
+            render(&mut framebuffer, &objects, &camera, &light);
+        }
+        frame += 1;
 
         // Update the window with the rendered frame
         window
