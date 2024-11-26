@@ -24,7 +24,7 @@ use light::Light;
 //use material::Material;
 // use texture::Texture;
 use cube::Cube;
-use diorama::generate_diorama;
+use diorama::{generate_diorama, generate_diorama2};
 
 const ORIGIN_BIAS: f32 = 1e-4;
 // el skybox debe tener un color azul oscuro
@@ -236,10 +236,17 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    
-    // Generate scene
-    let objects = generate_diorama();
+    // Variable for the diorama
+    let election = 2;
+    let objects: Vec<Cube>;
 
+    if election == 1 {
+        // Generate scene
+        objects = generate_diorama();
+    } else {
+        // Generate scene
+        objects = generate_diorama2();
+    }
 
     // Initialize camera
     let mut camera = Camera::new(
@@ -321,3 +328,4 @@ fn main() {
         std::thread::sleep(frame_delay);
     }
 }
+
